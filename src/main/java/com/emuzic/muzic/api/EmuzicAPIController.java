@@ -6,6 +6,7 @@ import java.util.Optional;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,7 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.emuzic.muzic.*;
 import com.emuzic.muzic.entitybeans.Album;
 import com.emuzic.muzic.entitybeans.Music;
-
+import com.emuzic.muzic.entitybeans.Ratings;
 import com.emuzic.muzic.entitybeans.Users;
 
 @RestController
@@ -42,6 +43,14 @@ public class EmuzicAPIController {
 	@Autowired
 	EStorageService storage_service;
 	
+	@Autowired
+	MusicRating music_rating;
+	
+	@Autowired
+	UserRating user_rating;
+	
+	@Autowired
+	RatingRepository rating_repo;
 	
 	
 	@Autowired
@@ -130,7 +139,31 @@ public class EmuzicAPIController {
 		return music;
 		
 	}
+	@GetMapping("/music/rating/get/{id}")
+	@ResponseBody
+	public Integer getMusicRating(@PathVariable("id") String id) {
 	
+		Optional<Music> optional = music_repo.findById(Long.parseLong(id));
+		Music music = optional.get();
+		Integer rating = music_rating.getAverageRating(music);
+		
+		return rating;		
+	}
+	
+	@PostMapping("/music/rating/create/{music_id}/{rating}")
+	@ResponseBody
+	public Ratings createMusicRating(@PathVariable("music_id") String music_id, @PathVariable("rating") String rating) {
+		
+		Optional<Music> optional = music_repo.findById(Long.parseLong(music_id));
+		Music music = optional.get();
+		int rate_value = Integer.parseInt(rating);
+		Ratings rate_obj = new Ratings();
+		rate_obj.setMusic(music);
+		rate_obj.setRating(rate_value);
+		
+		return rating_repo.save(rate_obj);
+		
+	}
 	@PostMapping("/album/create/{username}")
 	@ResponseBody
 	public Album createAlbum(@RequestBody @Valid Album album, @PathVariable("username") String username, BindingResult bindingresult){
@@ -166,5 +199,17 @@ public class EmuzicAPIController {
 		return album;
 		
 	}
-	
+	@PostMapping("/album/rating/create/{id}")
+	@ResponseBody
+	public Ratings createAlbumRating(@PathVariable("id") String id) {
+		Optional<Album> optional = album_repo.findById(Long.parseLong(id));
+		if(optional == null) {
+			return null;			
+		}
+		Album album = optional.get();
+		Ratings rating = new Ratings();
+		rating.setAlbum(album);
+		return rating_repo.save(rating);
+		
+	}
 }

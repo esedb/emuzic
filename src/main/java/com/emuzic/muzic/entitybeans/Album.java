@@ -21,8 +21,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Data
-@Getter 
-@Setter 
 @NoArgsConstructor
 @Entity
 @Table(name="albums")
@@ -30,7 +28,7 @@ public class Album {
 	@Id
 	@Column(name="album_id", nullable=false, unique = true )
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	Long albumId;
+	Long id;
 	
 	@Column(name="album_name")
 	String albumname;
